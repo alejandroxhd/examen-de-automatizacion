@@ -4,6 +4,9 @@ stages:
   - build
   - unit_tests
   - integration_tests
+  - acceptance_tests
+  - deploy_test
+  - rollback
 
 cache:
   key: "$CI_COMMIT_REF_SLUG"
@@ -13,6 +16,7 @@ cache:
 variables:
   MAVEN_OPTS: "-Dmaven.test.skip=false"
 
+# 1) COMPILACIÓN / BUILD
 build:
   stage: build
   script:
@@ -20,23 +24,80 @@ build:
   artifacts:
     paths:
       - target/*.jar
+    expire_in: 1 week
 
+# 2) PRUEBAS UNITARIAS
 unit_tests:
   stage: unit_tests
   needs: ["build"]
   script:
-    - mvn -B test
+    # Ejecuta solo pruebas cuyo nombre termina en Test (unitarias)
+    - mvn -B -Dtest='*Test' -DfailIfNoTests=false test
   artifacts:
     when: always
     paths:
       - target/surefire-reports
 
+# 3) PRUEBAS DE INTEGRACIÓN
 integration_tests:
   stage: integration_tests
   needs: ["build"]
   script:
+    # Aquí puedes usar las *IT.java configuradas con Failsafe si quieres
     - mvn -B failsafe:integration-test failsafe:verify
   artifacts:
     when: always
     paths:
       - target/failsafe-reports
+
+# 4) PRUEBAS DE ACEPTACIÓN
+acceptance_tests:
+  stage: acceptance_tests
+  needs: ["build"]
+  script:
+    # Ejecuta solo las pruebas de aceptación cuyo nombre termina en 'AcceptanceTest'
+    - mvn -B -Dtest='*AcceptanceTest' -DfailIfNoTests=false test
+  artifacts:
+    when: always
+    paths:
+      - target/surefire-reports
+
+# 5) DESPLIEGUE EN AMBIENTE DE PRUEBA (SIMULADO)
+deploy_test:
+  stage: deploy_test
+  needs: ["build", "acceptance_tests"]
+  script:
+    - echo "Desplegando versión en ambiente de prueba..."
+    - mkdir -p deploy/test/releases
+    # Copiamos el .jar generado a una carpeta que simula el ambiente de prueba
+    - cp target/*.jar "deploy/test/releases/app-$CI_COMMIT_SHORT_SHA.jar"
+    # Marcamos esta versión como la 'actual'
+    - ln -sfn "app-$CI_COMMIT_SHORT_SHA.jar" deploy/test/current.jar
+    - echo "Aplicación desplegada en ambiente de prueba usando current.jar -> app-$CI_COMMIT_SHORT_SHA.jar"
+  environment:
+    name: testing
+    url: http://testing.example.local  # solo simbólico para el informe
+  artifacts:
+    paths:
+      - deploy/test/
+    expire_in: 1 week
+
+# 6) ROLLBACK (MANUAL)
+rollback_test:
+  stage: rollback
+  needs: ["deploy_test"]
+  when: manual   # se dispara manualmente desde la interfaz de GitLab
+  script:
+    - echo "Iniciando rollback en ambiente de prueba..."
+    - ls -l deploy/test/releases || echo "No hay releases previos para rollback"
+    # Ejemplo simple: eliminamos el enlace 'current.jar' simulando sacar la versión actual
+    - rm -f deploy/test/current.jar || true
+    - echo "Rollback completado: current.jar eliminado. Ambiente de prueba vuelve a estado anterior (simulado)."
+  environment:
+    name: testing
+    action: stop
+  artifacts:
+    when: always
+    paths:
+      - deploy/test/
+    expire_in: 1 week
