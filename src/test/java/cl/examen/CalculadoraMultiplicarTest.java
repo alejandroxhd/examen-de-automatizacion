@@ -3,6 +3,9 @@ package cl.examen;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Pruebas unitarias de CalculadoraMultiplicar.
+ */
 public class CalculadoraMultiplicarTest {
 
     @Test
