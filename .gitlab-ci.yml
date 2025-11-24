@@ -1,0 +1,42 @@
+image: maven:3.9.6-eclipse-temurin-17
+
+stages:
+  - build
+  - unit_tests
+  - integration_tests
+
+cache:
+  key: "$CI_COMMIT_REF_SLUG"
+  paths:
+    - .m2/repository
+
+variables:
+  MAVEN_OPTS: "-Dmaven.test.skip=false"
+
+build:
+  stage: build
+  script:
+    - mvn -B -DskipTests clean package
+  artifacts:
+    paths:
+      - target/*.jar
+
+unit_tests:
+  stage: unit_tests
+  needs: ["build"]
+  script:
+    - mvn -B test
+  artifacts:
+    when: always
+    paths:
+      - target/surefire-reports
+
+integration_tests:
+  stage: integration_tests
+  needs: ["build"]
+  script:
+    - mvn -B failsafe:integration-test failsafe:verify
+  artifacts:
+    when: always
+    paths:
+      - target/failsafe-reports
