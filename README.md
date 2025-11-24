@@ -33,7 +33,7 @@ Actividad Dos.
 
 Subiremos nuestro proyecto a Gitlab donde crearemos el archivo .gitlab-ci.yml
 
-
+![image6.png](img/image6.png)
 
 
 
