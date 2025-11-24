@@ -1,6 +1,8 @@
-# Desarrollo examen
+# Desarrollo examen 
 
-Actividad 1 
+Alumno: Alejandro García
+
+Actividad Uno
 
 
 Creamos un proyecto Maven para realizar lo requerido, en este caso una calculadora de multiplicación.
@@ -49,13 +51,15 @@ Al subir el proyecto se ejecutará automáticamente el pipeline. Podemos ver que
 
 
 
-Actividad tres.
+Actividad Tres.
 
 
 Para esta actividad editamos el archivo .gitlab-ci-yml
 
 
 ![image8.png](img/image8.png)
+![image9.png](img/image9.png)
+
 
 
 
@@ -63,7 +67,7 @@ Para esta actividad editamos el archivo .gitlab-ci-yml
 
 Tambien creamos la clase de pruebas de aceptación
 
-![image9.png](img/image9.png)
+![image10.png](img/image10.png)
 
 
 
@@ -71,8 +75,8 @@ Tambien creamos la clase de pruebas de aceptación
 
 Luego realizamos el commit a gitlab y ejecutamos las pruebas donde podemos ver que son existosas
 
-![image10.png](img/image10.png)
 
+![image11.png](img/image11.png)
 
 
 
